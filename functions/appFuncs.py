@@ -1,5 +1,4 @@
 import numpy, sys
-sys.path.append('C:\\Users\\Harry\\Google Drive\\Insight Data Science\\Project')
 import pymysql as mdb
 from scipy.spatial import distance
 from data.StaticData import championDict
