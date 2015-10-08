@@ -1,9 +1,6 @@
 import sys
 import numpy
 from flask import render_template, request
-sys.path.append('../')
-sys.path.append('C:\\Users\\Harry\\Google Drive\\Insight Data Science\\Project')
-sys.path.append('D:\\Google Drive\\Insight Data Science\\Project')
 from app import app
 from functions.appFuncs import *
 import pymysql as mdb
