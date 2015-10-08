@@ -124,7 +124,7 @@ def gamestatus_output():
   crosshair = CrosshairTool(
     dimensions=["height"])
   # create a new plot with a title and axis labels
-  p = figure(x_range=[0,len(teamFeaturesDiff)-1],y_range=[0,1],toolbar_location = None, title="Probability to Win", x_axis_label='Time (s)', y_axis_label='Win Probability',tools=[crosshair],width=960,height=300)
+  p = figure(x_range=[0,len(teamFeaturesDiff)-1],y_range=[0,1],toolbar_location = None, title="Probability to Win", x_axis_label='Time (m)', y_axis_label='Win Probability',tools=[crosshair],width=960,height=300)
   p.line(x=[0,len(teamFeaturesDiff)-1],y=[0.5,0.5],line_color="#000000")  
   g1=p.line('x','y',line_width=2,source=source)  
   p.scatter('x','y',source=source)
