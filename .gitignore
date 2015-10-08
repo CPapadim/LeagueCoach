@@ -1,0 +1,14 @@
+*.py
+*.pickle
+*.rar
+*.sql
+*.txt
+*.json
+*.pyc
+
+
+!__init.__.py
+!run.py
+!StaticData.py
+!appFuncs.py
+!views.py
