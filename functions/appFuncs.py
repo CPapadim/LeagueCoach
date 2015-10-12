@@ -3,7 +3,7 @@ import pymysql as mdb
 from scipy.spatial import distance
 from data.StaticData import championDict
 import dill
-global dblogin, dbpw, riot_api_key,database
+global dblogin, dbpw, database, riot_api_key
 with open('crds.pickle','rb') as f:
     dblogin, dbpw,riot_api_key, database = dill.load(f)
 #from treeinterpreter import treeinterpreter as ti
@@ -23,9 +23,9 @@ with open('crds.pickle','rb') as f:
 #        featureDiff = abs(contributions1[0,:,0]-contributions2[0,:,1])
 #    return sorted(zip(featureDiff,featureLabels),reverse=True)
 
-def load_effect_means(data_limit=1000):
+def load_effect_means(gametype,data_limit=1000):
   #data_limit - number of SQL rows to pull
-    
+  #gametype - RANKED, NORMAL
     
   #Thresholds for kills should be 20/1000
   #Thresholds for purchases should be 40/1000 
@@ -33,17 +33,17 @@ def load_effect_means(data_limit=1000):
   #Dragon  
   db = mdb.connect(user=dblogin, passwd=dbpw, host="localhost", db=database, charset='utf8')
   sqlcommand = [None]*11
-  sqlcommand[0]='SELECT drag_trigg_kill_effect-drag_trigg_kill_baseline FROM team_drag_trigg_kill_mean WHERE ABS(drag_trigg_kill_effect-drag_trigg_kill_baseline) <= (20/1000) AND ABS(drag_trigg_kill_effect-drag_trigg_kill_baseline) > 0 AND Id <= 20001 LIMIT ' + str(data_limit)   
-  sqlcommand[1]='SELECT baron_trigg_purchase_effect-baron_trigg_purchase_baseline FROM team_baron_trigg_purchase_mean WHERE ABS(baron_trigg_purchase_effect-baron_trigg_purchase_baseline) <= (20/1000) AND ABS(baron_trigg_purchase_effect-baron_trigg_purchase_baseline) > 0 AND Id <= 20001 LIMIT ' + str(data_limit)    
-  sqlcommand[2]='SELECT drag_trigg_wardplace_effect-drag_trigg_wardplace_baseline FROM team_drag_trigg_wardplace_mean WHERE ABS(drag_trigg_wardplace_effect-drag_trigg_wardplace_baseline) <= (20/1000) AND ABS(drag_trigg_wardplace_effect-drag_trigg_wardplace_baseline) > 0 AND Id <= 20001 LIMIT ' + str(data_limit)    
-  sqlcommand[3]='SELECT drag_trigg_wardkill_effect-drag_trigg_wardkill_baseline FROM team_drag_trigg_wardkill_mean WHERE ABS(drag_trigg_wardkill_effect-drag_trigg_wardkill_baseline) <= (20/1000) AND  ABS(drag_trigg_wardkill_effect-drag_trigg_wardkill_baseline) > 0 AND Id <= 20001 LIMIT ' + str(data_limit)    
-  sqlcommand[4]='SELECT inhib_trigg_purchase_effect-inhib_trigg_purchase_baseline FROM team_inhib_trigg_purchase_mean WHERE ABS(inhib_trigg_purchase_effect-inhib_trigg_purchase_baseline) <= (20/1000) AND  ABS(inhib_trigg_purchase_effect-inhib_trigg_purchase_baseline) > 0 AND Id <= 20001 LIMIT ' + str(data_limit) 
-  sqlcommand[5]='SELECT team_dist_time_early-team_dist_time_mid FROM team_dist_time_mean WHERE ABS(team_dist_time_early-team_dist_time_mid) <= (5000000) AND Id <= 20001 LIMIT ' + str(data_limit) 
-  sqlcommand[6]='SELECT teammate_killed_teamdist_effect-teammate_killed_teamdist_baseline FROM team_teammate_killed_teamdist_mean WHERE ABS(teammate_killed_teamdist_effect-teammate_killed_teamdist_baseline) <= (5000000) AND Id <= 20001 LIMIT ' + str(data_limit) 
-  sqlcommand[7]='SELECT enemy_killed_teamdist_effect-enemy_killed_teamdist_baseline FROM team_enemy_killed_teamdist_mean WHERE ABS(enemy_killed_teamdist_effect-enemy_killed_teamdist_baseline) <= (5000000) AND Id <= 20001 LIMIT ' + str(data_limit) 
-  sqlcommand[8]='SELECT death_after_kill_baseline-death_after_kill_effect FROM team_death_after_kill_mean WHERE ABS(death_after_kill_effect-death_after_kill_baseline) <= (20/100) AND Id <= 20001  LIMIT ' + str(data_limit)    
-  sqlcommand[9]='SELECT earlyCS FROM team_behavior_data WHERE Id <= 20001 LIMIT ' + str(data_limit)    
-  sqlcommand[10]='SELECT earlyJGS FROM team_behavior_data WHERE Id <= 20001 LIMIT ' + str(data_limit)   
+  sqlcommand[0]='SELECT drag_trigg_kill_effect-drag_trigg_kill_baseline FROM team_drag_trigg_kill_mean WHERE ABS(drag_trigg_kill_effect-drag_trigg_kill_baseline) <= (20/1000) AND ABS(drag_trigg_kill_effect-drag_trigg_kill_baseline) > 0 AND file_from LIKE \'%' + gametype + '%\' LIMIT ' + str(data_limit)   
+  sqlcommand[1]='SELECT baron_trigg_purchase_effect-baron_trigg_purchase_baseline FROM team_baron_trigg_purchase_mean WHERE ABS(baron_trigg_purchase_effect-baron_trigg_purchase_baseline) <= (20/1000) AND ABS(baron_trigg_purchase_effect-baron_trigg_purchase_baseline) > 0 AND file_from LIKE \'%' + gametype + '%\' LIMIT ' + str(data_limit)    
+  sqlcommand[2]='SELECT drag_trigg_wardplace_effect-drag_trigg_wardplace_baseline FROM team_drag_trigg_wardplace_mean WHERE ABS(drag_trigg_wardplace_effect-drag_trigg_wardplace_baseline) <= (20/1000) AND ABS(drag_trigg_wardplace_effect-drag_trigg_wardplace_baseline) > 0 AND file_from LIKE \'%' + gametype + '%\' LIMIT ' + str(data_limit)    
+  sqlcommand[3]='SELECT drag_trigg_wardkill_effect-drag_trigg_wardkill_baseline FROM team_drag_trigg_wardkill_mean WHERE ABS(drag_trigg_wardkill_effect-drag_trigg_wardkill_baseline) <= (20/1000) AND  ABS(drag_trigg_wardkill_effect-drag_trigg_wardkill_baseline) > 0 AND file_from LIKE \'%' + gametype + '%\' LIMIT ' + str(data_limit)    
+  sqlcommand[4]='SELECT inhib_trigg_purchase_effect-inhib_trigg_purchase_baseline FROM team_inhib_trigg_purchase_mean WHERE ABS(inhib_trigg_purchase_effect-inhib_trigg_purchase_baseline) <= (20/1000) AND  ABS(inhib_trigg_purchase_effect-inhib_trigg_purchase_baseline) > 0 AND file_from LIKE \'%' + gametype + '%\' LIMIT ' + str(data_limit) 
+  sqlcommand[5]='SELECT team_dist_time_early-team_dist_time_mid FROM team_dist_time_mean WHERE ABS(team_dist_time_early-team_dist_time_mid) <= (5000000) AND file_from LIKE \'%' + gametype + '%\' LIMIT ' + str(data_limit) 
+  sqlcommand[6]='SELECT teammate_killed_teamdist_baseline-teammate_killed_teamdist_effect FROM team_teammate_killed_teamdist_mean WHERE ABS(teammate_killed_teamdist_effect-teammate_killed_teamdist_baseline) <= (5000000) AND file_from LIKE \'%' + gametype + '%\' LIMIT ' + str(data_limit) 
+  sqlcommand[7]='SELECT enemy_killed_teamdist_baseline-enemy_killed_teamdist_effect FROM team_enemy_killed_teamdist_mean WHERE ABS(enemy_killed_teamdist_effect-enemy_killed_teamdist_baseline) <= (5000000) AND file_from LIKE \'%' + gametype + '%\' LIMIT ' + str(data_limit) 
+  sqlcommand[8]='SELECT death_after_kill_baseline-death_after_kill_effect FROM team_death_after_kill_mean WHERE ABS(death_after_kill_effect-death_after_kill_baseline) <= (20/100) AND file_from LIKE \'%' + gametype + '%\' LIMIT ' + str(data_limit)    
+  sqlcommand[9]='SELECT earlyCS FROM team_behavior_data WHERE file_from LIKE \'%' + gametype + '%\' LIMIT ' + str(data_limit)    
+  sqlcommand[10]='SELECT earlyJGS FROM team_behavior_data WHERE file_from LIKE \'%' + gametype + '%\' LIMIT ' + str(data_limit)   
 
   thresholdU = [None]*11
   thresholdU[0] = 0.001 # thresholdDragChampKill=0.001

@@ -14,7 +14,7 @@
    <link href="../static/css/bootstrap.min.css" rel="stylesheet">
 
    <!-- Custom styles for this template -->
-   <link href="starter-template.css" rel="stylesheet">
+   <link href="../static/css/starter-template.css" rel="stylesheet">
 
    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
@@ -47,6 +47,23 @@
 			var e = document.getElementById(id);
 			e.style.display = 'none';
 		}
+	   function toggle_bg(id) 
+		{
+			var e = document.getElementById(id);
+			if (window.getComputedStyle(e).backgroundColor == 'rgb(51, 51, 51)')
+			{
+				e.style.backgroundColor = '#dc143c';
+			}
+			else
+			{
+				e.style.backgroundColor = '#333333';
+			}
+		}
+	   function set_bg(id) 
+		{
+			var e = document.getElementById(id);
+			e.style.backgroundColor = '#333333';
+		}
 	</script>
  </head>
 
@@ -73,47 +90,43 @@
      </div>
    </div>
 
-<br><br>
 
-    <div class="container">
+  <div class="container contentdiv coachadvice">
+
     <div class="starter-template">
-        <h2>Output Page</h2>
-        <p>Enter Summoner Name</p>
+        <h2>Top advice for you</h2>
     </div>
 
-    <div class = "container">
+	  <div id = "advice-container">
+	    <div id = "advice-center">
+			  <div id = "AdviceText">
+				<button style="width: 550px; height:100px; overflow:hidden; text-align:left; background-color:#dc143c" id = "advice1-btn" class="btn btn-default btn-lg" onclick="toggle_visibility('Advice1'); toggle_bg('advice1-btn'); set_invisible('Advice2'); set_invisible('Advice3'); set_bg('advice2-btn'); set_bg('advice3-btn');">{{ advice1|safe }}</button><br>
+				<button style="width: 550px; height:100px; overflow:hidden; text-align:left; background-color:#333333" id = "advice2-btn" class="btn btn-default btn-lg" onclick="toggle_visibility('Advice2'); toggle_bg('advice2-btn'); set_invisible('Advice1'); set_invisible('Advice3'); set_bg('advice1-btn'); set_bg('advice3-btn');">{{ advice2|safe }}</button><br>
+				<button style="width: 550px; height:100px; overflow:hidden; text-align:left; background-color:#333333" id = "advice3-btn" class="btn btn-default btn-lg" onclick="toggle_visibility('Advice3'); toggle_bg('advice3-btn'); set_invisible('Advice2'); set_invisible('Advice1'); set_bg('advice2-btn'); set_bg('advice1-btn');">{{ advice3|safe }}</button><br>
+			  </div>
+			  <div id="Advice1" style="display:block;">{{ ft1a|safe }}</div>
+			  <div id="Advice2" style="display:none;">{{ ft2a|safe }}</div>
+			  <div id="Advice3" style="display:none;">{{ ft3a|safe }}</div>
+		</div>
+	  </div>
+    <div class = "container input input-results">
 
       <form  action="/coachadvice" method="GET">
         <div class="form-group">
           <label for="ID">Summoner Name:</label>
           <input type="text" id="ID" name='ID' placeholder="e.g. ">
         </div>
-        <div>
+        <div style="float:right; padding-top:11px;">
 		  <button type="submit" class="btn btn-default btn-lg">Retrieve Games</button>
         </div>
       </form>
     </div>
-    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+	<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
     <script src="static/js/bootstrap.min.js"></script>
 
   </div> <!-- /.container-->
 
-    <div class="container">
-      <div class="starter-template">
-        <h3>Top Advice For You:</h3>
-      </div>
-	  <div style="width:1100px; height:500px;">
-		  <div style="float:left; width:550px; height:300px; align:left; overflow:hidden;">
-			<button style="width: 550px; height:100px; overflow:hidden; text-align:left;" class="btn btn-default btn-lg" onclick="toggle_visibility('Advice1'); set_invisible('Advice2'); set_invisible('Advice3');">{{ advice1|safe }}</button><br>
-			<button style="width: 550px; height:100px; overflow:hidden; text-align:left;" class="btn btn-default btn-lg" onclick="toggle_visibility('Advice2'); set_invisible('Advice1'); set_invisible('Advice3');">{{ advice2|safe }}</button><br>
-			<button style="width: 550px; height:100px; overflow:hidden; text-align:left;" class="btn btn-default btn-lg" onclick="toggle_visibility('Advice3'); set_invisible('Advice2'); set_invisible('Advice1');">{{ advice3|safe }}</button><br>
-		  </div>
-		  <div id="Advice1" style="display:none; float:right; width:550px; height:350px; align:right;"><div style="height:350px;">{{ ft1a|safe }}</div></div>
-		  <div id="Advice2" style="display:none; float:right; width:550px; height:350px; align:right;"><div style="height:350px;">{{ ft2a|safe }}</div>></div>
-		  <div id="Advice3" style="display:none; float:right; width:550px; height:350px; align:right;"><div style="height:350px;">{{ ft3a|safe }}</div></div>
-	  </div>
 
-     </div><!-- /.container -->
 
 
       <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
@@ -121,7 +134,9 @@
 
 
      </div><!-- /.container -->
-
+  <div class = "footer coachadvicefooter coachadvicefooter-output">
+	<div class = "footer-content">LeagueCoach isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing League of Legends. League of Legends and Riot Games are trademarks or registered trademarks of Riot Games, Inc. League of Legends © Riot Games, Inc.</div>
+  </div>
 
    <!-- Bootstrap core JavaScript
    ================================================== -->

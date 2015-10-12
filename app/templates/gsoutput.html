@@ -14,8 +14,7 @@
    <link href="../static/css/bootstrap.min.css" rel="stylesheet">
 
    <!-- Custom styles for this template -->
-   <link href="starter-template.css" rel="stylesheet">
-
+   <link href="../static/css/starter-template.css" rel="stylesheet">
    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
    <script src="../../assets/js/ie-emulation-modes-warning.js"></script>
@@ -53,50 +52,35 @@
      </div>
    </div>
 
-<br><br>
-
-    <div class="container">
+  <div class="container contentdiv gamestatus">
     <div class="starter-template">
-        <h2>Output Page</h2>
-        <p>Enter Summoner Name</p>
+        <h2>Probability to win over time</h2>
     </div>
 
-    <div class = "container">
+    <div class="probwin">
+      {{ ft|safe }}
+     </div>
+
+    <div class = "container input input-results">
 
       <form  action="/gsoutput" method="GET">
         <div class="form-group">
           <label for="ID">Summoner Name:</label>
           <input type="text" id="ID" name='ID' placeholder="e.g. ">
         </div>
-        <div>
-          <button type="submit" class="btn btn-default btn-lg">Analyze Game</button>
+        <div style="float:right; padding-top:11px;">
+		  <button type="submit" class="btn btn-default btn-lg">Analyze Game</button>
         </div>
       </form>
     </div>
-    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
-    <script src="static/js/bootstrap.min.js"></script>
-
-  </div> <!-- /.container-->
-
-    <div class="container">
-      <div class="starter-template">
-        <h3>Win Probabilities for Recent Games:</h3>
-      </div>
-
-      <table class="table table-hover">
-      <tr><td>{{ ft|safe }}</td></tr>
-      </table>
-
-
-     </div><!-- /.container -->
-
-
       <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
       <script src="static/js/bootstrap.min.js"></script>
 
 
-     </div><!-- /.container -->
-
+  </div><!-- /.container -->
+  <div class = "footer gamestatusfooter gamestatusfooter-output">
+	<div class = "footer-content">LeagueCoach isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing League of Legends. League of Legends and Riot Games are trademarks or registered trademarks of Riot Games, Inc. League of Legends © Riot Games, Inc.</div>
+  </div>
 
    <!-- Bootstrap core JavaScript
    ================================================== -->

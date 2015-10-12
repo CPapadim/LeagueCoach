@@ -13,16 +13,31 @@ from bokeh.plotting import figure
 from bokeh.embed import file_html
 from bokeh.resources import CDN
 import bokeh.models as bkm
-from bokeh.models import HoverTool, CrosshairTool, SingleIntervalTicker, LinearAxis, ColumnDataSource
-global WinLoseForests
-with open('RandomForest64bit_20k_LastFrame45FStep3.pickle','rb') as f:
-    WinLoseForests=dill.load(f)
-    
+from bokeh.models import HoverTool, CrosshairTool, FixedTicker, ColumnDataSource
+global sleepTime
+sleepTime = 5
 #with open('crds.pickle','wb') as f:
 #    dill.dump([dblogin, dbpw,riot_api_key, database],f)
 global dblogin, dbpw, database, riot_api_key
 with open('crds.pickle','rb') as f:
     dblogin, dbpw,riot_api_key, database = dill.load(f)
+global results_list_hold, meanEffect, stDev
+global results_list2_hold, meanEffect2, stDev2
+results_list_hold, meanEffect, stDev = load_effect_means('RANKED',1000)
+results_list2_hold, meanEffect2, stDev2 = load_effect_means('NORMAL',1000)
+for r, result in enumerate(results_list_hold):
+  if abs(meanEffect[r]) < 1: #if it's smaller than magnitude 1, it's probably a rate, so multipy by 60,000 ms
+      meanEffect[r] = meanEffect[r]*60*1000
+      results_list_hold[r] = results_list_hold[r]*60*1000
+      stDev[r] = stDev[r]*60*1000
+		  
+      meanEffect2[r] = meanEffect2[r]*60*1000
+      results_list2_hold[r] = results_list2_hold[r]*60*1000
+      stDev2[r] = stDev2[r]*60*1000
+global WinLoseForests
+with open('RandomForest64bit_20k_LastFrame45FStep3.pickle','rb') as f:
+    WinLoseForests=dill.load(f)
+
 db = mdb.connect(user=dblogin, passwd=dbpw, host="localhost", db=database, charset='utf8')
 
 
@@ -51,7 +66,7 @@ def gamestatus_output():
   while not success:  
     if str(response) == "<Response [200]>":
         summonerId=json.loads(response.text)[summonerName.lower()]['id']
-        time.sleep(2)
+        time.sleep(sleepTime)
         success=True
     else:
         return render_template("error.html",error = response)      
@@ -66,7 +81,7 @@ def gamestatus_output():
           playerTeam=int(gameData[0]['teamId']/100)
           gid = gameData[0]['gameId']
           success2 = True
-          time.sleep(2)
+          time.sleep(sleepTime)
       else:
           return render_template("error.html",error = response)
 
@@ -89,8 +104,8 @@ def gamestatus_output():
                   forestFrame = frameVec[round(frame/frameStep)]
               try:
                   extractedFeatures=extract_features_single(jsondata,'frame',frame)[0][:-1]
-              except:
-                  return render_template("error.html",error = "Recent game history may only contain Summoner's Rift games and all game participants must have played in the current season")                      
+              except Exception as e:
+                  return render_template("error.html",error = str(e))                      
                
               rf = getattr(WinLoseForests,'f' + str(forestFrame))
               prob_win1win2[frame]=rf.predict_proba(extractedFeatures)[0,playerTeam-1] #Should be [0,0] for team 1
@@ -99,7 +114,7 @@ def gamestatus_output():
               teamFeaturesDiff[frame,:] = numpy.array([extractedFeatures[i+150*(playerTeam-1)] for i in range(0,8)])-numpy.array([extractedFeatures[i+150*(2-playerTeam)] for i in range(0,8)])
           winner = 1*jsondata['teams'][0]['winner'] + 2*jsondata['teams'][1]['winner']             
           success3=True
-          time.sleep(2)        
+          time.sleep(sleepTime)        
       else:
           return render_template("error.html",error = response)
   ########################
@@ -125,10 +140,22 @@ def gamestatus_output():
     dimensions=["height"])
   # create a new plot with a title and axis labels
   p = figure(x_range=[0,len(teamFeaturesDiff)-1],y_range=[0,1],toolbar_location = None, title="Probability to Win", x_axis_label='Time (m)', y_axis_label='Win Probability',tools=[crosshair],width=960,height=300)
-  p.line(x=[0,len(teamFeaturesDiff)-1],y=[0.5,0.5],line_color="#000000")  
+  p.line(x=[0,len(teamFeaturesDiff)-1],y=[0.5,0.5],line_color="#e6e6e6")  
   g1=p.line('x','y',line_width=2,source=source)  
   p.scatter('x','y',source=source)
-
+  p.background_fill = '#000000'
+  p.border_fill = '#000000'
+  p.xaxis.axis_label_text_color = '#9d9d9d'
+  p.yaxis.axis_label_text_color = '#9d9d9d'
+  p.title_text_font_size = '0pt'
+  p.xgrid.grid_line_color = '#222222'
+  p.ygrid.grid_line_color = '#222222'
+  p.xaxis.axis_line_color = '#e6e6e6'
+  p.yaxis.axis_line_color = '#e6e6e6'
+  p.xaxis.major_label_text_color = '#e6e6e6'
+  p.yaxis.major_label_text_color = '#e6e6e6'
+  p.yaxis[0].ticker=FixedTicker(ticks=[0,0.25,0.5,0.75,1])
+  p.ygrid.ticker = FixedTicker(ticks=[0,0.25,0.5,0.75,1])
   # add a line renderer with legend and line thickness
   hover = HoverTool(
     renderers=[g1],
@@ -172,7 +199,7 @@ def coach_output():
   while not success:  
     if str(response) == "<Response [200]>":
         summonerId=json.loads(response.text)[summonerName.lower()]['id']
-        time.sleep(2)
+        time.sleep(sleepTime)
         success=True
     else:
         return render_template("error.html",error = response)      
@@ -188,7 +215,7 @@ def coach_output():
               gameId.append(game['gameId']) 
               playerTeam.append(int(game['teamId']/100))
           success2 = True
-          time.sleep(2)
+          time.sleep(sleepTime)
       else:
           return render_template("error.html",error = response)
   extractedFeatures=[]
@@ -196,18 +223,24 @@ def coach_output():
       url="https://na.api.pvp.net/api/lol/na/v2.2/match/" + str(gid) + "?includeTimeline=true&api_key=" + str(riot_api_key)
       response = requests.get(url)
       success3 = False
+      attempts = 0
       while not success3:
           if str(response) == "<Response [200]>":
               jsondata=json.loads(response.text)
               try:
                   extractedFeatures.append(extract_features_single(jsondata,'behavior'))
-              except:
-                  return render_template("error.html",error = "Recent game history may only contain Summoner's Rift games and all game participants must have played in the current season")                      
+              except Exception as e:
+                  return render_template("error.html",error = str(e))                      
            
               success3=True
-              time.sleep(2)
+              time.sleep(sleepTime)
+          elif attempts > 3:
+              attempts = 0
+              return render_template("error.html",error = response)
           else:
-              return render_template("error.html",error = response)              
+              attempts +=1
+              response = requests.get(url)
+
   #############################################
   #    GET DATA AND CALCULATE ---  START      #  
   #############################################             
@@ -366,9 +399,12 @@ def coach_output():
   drag_trigg_wardkilled_metric = (numpy.nanmean(drag_trigg_wardkilled)-numpy.nanmean(drag_trigg_wardkilled_base))*60*1000
   inhib_trigg_purchase_metric = (numpy.nanmean(inhib_trigg_purchase)-numpy.nanmean(inhib_trigg_purchase_base))*60*1000
   team_dist_time_metric = (numpy.nanmean(team_dist_time)-numpy.nanmean(team_dist_time_base))
-  teammate_killed_teamdist_metric = (numpy.nanmean(teammate_killed_teamdist)-numpy.nanmean(teammate_killed_teamdist_base))
-  #enemy_killed_teamdist_metric Currently not working (effect in wrong direction), fix later:  
-  enemy_killed_teamdist_metric = (numpy.nanmean(enemy_killed_teamdist)-numpy.nanmean(enemy_killed_teamdist_base))
+  teammate_killed_teamdist_metric = (numpy.nanmean(teammate_killed_teamdist_base)-numpy.nanmean(teammate_killed_teamdist))
+  enemy_killed_teamdist_metric = (numpy.nanmean(enemy_killed_teamdist_base)-numpy.nanmean(enemy_killed_teamdist))
+  #Currently confounded because enemy team in a ranked game is better at killing during a fight.  
+  #I don't have the 'base line in-fight kill rate' to de-confound this.  Possibly consider
+  #limiting the event trigger to times where only ONE player died within 5 minutes so that
+  #team-fights are avoided.  
   death_after_kill_metric = (numpy.nanmean(death_after_kill_base)-numpy.nanmean(death_after_kill))*60*1000
   earlyCreepScore_metric = numpy.nanmean(earlyCreepScore)
   earlyJGScore_metric = numpy.nanmean(earlyJGScore)
@@ -429,20 +465,18 @@ def coach_output():
   weights[8] = 0.33
   weights[9] = 0.20
   weights[10] = 0.15
-  results_list, meanEffect, stDev = load_effect_means(2000)
+  results_list = results_list_hold
+  results_list2 = results_list2_hold
   numstDevAway=[]
   importance=[]
   for r, result in enumerate(results_list):
-      if abs(meanEffect[r]) < 1: #if it's smaller than magnitude 1, it's probably a rate, so multipy by 60,000 ms
-          meanEffect[r] = meanEffect[r]*60*1000
-          results_list[r] = results_list[r]*60*1000
-          stDev[r] = stDev[r]*60*1000
+
       numstDevAway.append((meanEffect[r] - playerEffect[r]) / stDev[r] )
       importance.append(numstDevAway[r]*weights[r])
   sortedImportance = numpy.sort(importance)[::-1]
   sortIndex = numpy.argsort(importance)[::-1]
-  sortIndex = numpy.delete(sortIndex,numpy.where(sortIndex==7))  #remove enemy_killed metric since that doesn't work well
-  sortIndex = numpy.delete(sortIndex,numpy.where(numpy.isnan(sortedImportance)))  #remove enemy_killed metric since that doesn't work well
+  sortIndex = numpy.delete(sortIndex,numpy.where(sortIndex==8))  #remove death_after_kill since it is currently confounded
+  sortIndex = numpy.delete(sortIndex,numpy.where(numpy.isnan(sortedImportance)))  #remove nans / missing values
   
   
   ###################################
@@ -463,32 +497,38 @@ def coach_output():
 
 
   # create a new plot with a title and axis labels
-  hist, edges = numpy.histogram(results_list[sortIndex[0]], density=True, bins=50)    
-  p1 = figure(min_border=1, x_axis_label=xlabels[sortIndex[0]], y_axis_label="y",tools=[crosshair1],width=400,height=350,toolbar_location=None)
-  p1.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:], fill_color="#036564", line_color="#033649")
-  p1.line([playerEffect[sortIndex[0]],playerEffect[sortIndex[0]]],[0,numpy.max(hist)*1.05],line_width=2)  
-  g1=p1.scatter(x=playerEffect[sortIndex[0]],y=[numpy.max(hist)*1.05],marker="inverted_triangle",size=20)
+  hist, edges = numpy.histogram(results_list[sortIndex[0]], density=False, bins=30)  
+  hist2, edges2 = numpy.histogram(numpy.append(results_list[sortIndex[0]],results_list2[sortIndex[0]]), density=False, bins=edges)
+  p1 = figure(min_border=1, x_axis_label=xlabels[sortIndex[0]], y_axis_label="",tools=[crosshair1],width=400,height=300,toolbar_location=None)
+  p1.quad(top=hist2, bottom=0, left=edges[:-1], right=edges[1:], fill_color="orange", line_color="#033649")  
+  p1.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:], fill_color="yellow", line_color="#033649")
+  p1.line([playerEffect[sortIndex[0]],playerEffect[sortIndex[0]]],[0,numpy.max(hist2)*1.05],line_width=3,color="#DC143C")  
+  g1=p1.scatter(x=playerEffect[sortIndex[0]],y=[numpy.max(hist2)*1.05],marker="inverted_triangle",size=20,fill_color="#DC143C",line_color="#DC143C")
   p1.yaxis.major_label_text_font_size='0pt'
   p1.xaxis.major_label_text_font_size='0pt'
   p1.yaxis.axis_label_text_color='#ffffff'
 
   advice1 = advice[sortIndex[0]]
   
-  hist, edges = numpy.histogram(results_list[sortIndex[1]], density=True, bins=50)
-  p2 = figure(min_border=1, x_axis_label=xlabels[sortIndex[1]], y_axis_label='y',tools=[crosshair2],width=400,height=350,toolbar_location=None) 
-  p2.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:], fill_color="#036564", line_color="#033649")
-  p2.line([playerEffect[sortIndex[1]],playerEffect[sortIndex[1]]],[0,numpy.max(hist)*1.05],line_width=2)  
-  g2=p2.scatter(x=playerEffect[sortIndex[1]],y=[numpy.max(hist)*1.05],marker="inverted_triangle",size=20)
+  hist, edges = numpy.histogram(results_list[sortIndex[1]], density=False, bins=30)
+  hist2, edges2 = numpy.histogram(numpy.append(results_list[sortIndex[1]],results_list2[sortIndex[1]]), density=False, bins=edges)
+  p2 = figure(min_border=1, x_axis_label=xlabels[sortIndex[1]], y_axis_label='',tools=[crosshair2],width=400,height=300,toolbar_location=None) 
+  p2.quad(top=hist2, bottom=0, left=edges[:-1], right=edges[1:], fill_color="orange", line_color="#033649")    
+  p2.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:], fill_color="yellow", line_color="#033649")
+  p2.line([playerEffect[sortIndex[1]],playerEffect[sortIndex[1]]],[0,numpy.max(hist2)*1.05],line_width=3,color="#DC143C")  
+  g2=p2.scatter(x=playerEffect[sortIndex[1]],y=[numpy.max(hist2)*1.05],marker="inverted_triangle",size=20,fill_color="#DC143C",line_color="#DC143C")
   p2.yaxis.major_label_text_font_size='0pt'
   p2.xaxis.major_label_text_font_size='0pt'
   p2.yaxis.axis_label_text_color='#ffffff'
   advice2 = advice[sortIndex[1]]
   
-  hist, edges = numpy.histogram(results_list[sortIndex[2]], density=True, bins=50)
-  p3 = figure(min_border=1, x_axis_label=xlabels[sortIndex[2]], y_axis_label='y',tools=[crosshair3],width=400,height=350,toolbar_location=None)  
-  p3.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:], fill_color="#036564", line_color="#033649")
-  p3.line([playerEffect[sortIndex[2]],playerEffect[sortIndex[2]]],[0,numpy.max(hist)*1.05],line_width=2)
-  g3=p3.scatter(x=playerEffect[sortIndex[2]],y=[numpy.max(hist)*1.05],marker="inverted_triangle",size=20)
+  hist, edges = numpy.histogram(results_list[sortIndex[2]], density=False, bins=30)
+  hist2, edges2 = numpy.histogram(numpy.append(results_list[sortIndex[2]],results_list2[sortIndex[2]]), density=False, bins=edges)
+  p3 = figure(min_border=1, x_axis_label=xlabels[sortIndex[2]], y_axis_label='',tools=[crosshair3],width=400,height=300,toolbar_location=None)  
+  p3.quad(top=hist2, bottom=0, left=edges[:-1], right=edges[1:], fill_color="orange", line_color="#033649")    
+  p3.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:], fill_color="yellow", line_color="#033649")
+  p3.line([playerEffect[sortIndex[2]],playerEffect[sortIndex[2]]],[0,numpy.max(hist2)*1.05],line_width=3,color="#DC143C")
+  g3=p3.scatter(x=playerEffect[sortIndex[2]],y=[numpy.max(hist2)*1.05],marker="inverted_triangle",size=20,fill_color="#DC143C",line_color="#DC143C")
   p3.yaxis.major_label_text_font_size='0pt'
   p3.xaxis.major_label_text_font_size='0pt'
   p3.yaxis.axis_label_text_color='#ffffff'
@@ -527,7 +567,43 @@ def coach_output():
   #p1.add_tools(hover1)
   #p2.add_tools(hover2)
   #p3.add_tools(hover3)
-   
+  p1.background_fill = '#000000'
+  p1.border_fill = '#000000'
+  p1.xaxis.axis_label_text_color = '#9d9d9d'
+  p1.yaxis.axis_label_text_color = '#9d9d9d'
+  p1.title_text_font_size = '0pt'
+  p1.xgrid.grid_line_color = '#222222'
+  p1.ygrid.grid_line_color = '#222222'
+  p1.xaxis.axis_line_color = '#e6e6e6'
+  p1.yaxis.axis_line_color = '#e6e6e6'
+  p1.xaxis.major_label_text_color = '#e6e6e6'
+  p1.yaxis.major_label_text_color = '#e6e6e6'
+  
+  p2.background_fill = '#000000'
+  p2.border_fill = '#000000'
+  p2.xaxis.axis_label_text_color = '#9d9d9d'
+  p2.yaxis.axis_label_text_color = '#9d9d9d'
+  p2.title_text_font_size = '0pt'
+  p2.xgrid.grid_line_color = '#222222'
+  p2.ygrid.grid_line_color = '#222222'
+  p2.xaxis.axis_line_color = '#e6e6e6'
+  p2.yaxis.axis_line_color = '#e6e6e6'
+  p2.xaxis.major_label_text_color = '#e6e6e6'
+  p2.yaxis.major_label_text_color = '#e6e6e6'  
+  
+  p3.background_fill = '#000000'
+  p3.border_fill = '#000000'
+  p3.xaxis.axis_label_text_color = '#9d9d9d'
+  p3.yaxis.axis_label_text_color = '#9d9d9d'
+  p3.title_text_font_size = '0pt'
+  p3.xgrid.grid_line_color = '#222222'
+  p3.ygrid.grid_line_color = '#222222'
+  p3.xaxis.axis_line_color = '#e6e6e6'
+  p3.yaxis.axis_line_color = '#e6e6e6'
+  p3.xaxis.major_label_text_color = '#e6e6e6'
+  p3.yaxis.major_label_text_color = '#e6e6e6'
+  
+  
   ft1a = file_html(p1,CDN,'title')
   ft2a = file_html(p2,CDN,'title')
   ft3a = file_html(p3,CDN,'title')
